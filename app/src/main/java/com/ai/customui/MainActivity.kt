@@ -28,6 +28,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
@@ -37,6 +38,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.graphics.withRotation
 import com.ai.customui.ui.theme.CustomUITheme
 import kotlin.math.PI
 import kotlin.math.abs
@@ -176,6 +178,14 @@ fun Scale(
             nativeCanvas = nativeCanvas
         )
 
+        //needle
+        scaleNeedle(
+            circleCenter = circleCenter,
+            drawScope = this,
+            innerRadius = innerRadius,
+            scaleStyle = scaleStyle
+        )
+
     }
 
 }
@@ -258,6 +268,7 @@ private fun drawScaleWeightLines(
                 y = outerRadius * sin(angleInRadians) + circleCenter.y
             )
 
+            // actual line
             drawLine(
                 color = lineColor,
                 start = lineStart,
@@ -276,15 +287,27 @@ private fun drawScaleWeightLines(
                 )
 
                 nativeCanvas.apply {
-                    drawText(
-                        abs(i).toString(),
-                        numberCoordinates.x,
-                        numberCoordinates.y,
-                        Paint().apply {
-                            textSize = scaleStyle.textSize.toPx()
-                            textAlign = Paint.Align.CENTER
-                        }
-                    )
+
+                    // don't know the meaning of '90f' but it works here
+                    withRotation(
+                        degrees = angleInDegrees + 90f,
+                        pivotX = numberCoordinates.x,
+                        pivotY = numberCoordinates.y
+                    ) {
+
+                        // actual number written
+                        drawText(
+                            abs(i).toString(),
+                            numberCoordinates.x,
+                            numberCoordinates.y,
+                            Paint().apply {
+                                textSize = scaleStyle.textSize.toPx()
+                                textAlign = Paint.Align.CENTER
+                            }
+                        )
+
+                    }
+
                 }
 
             }
@@ -292,6 +315,48 @@ private fun drawScaleWeightLines(
         }
     }
 
+
+}
+
+private fun scaleNeedle(
+    circleCenter: Offset,
+    drawScope: DrawScope,
+    innerRadius : Float,
+    scaleStyle: ScaleStyle,
+) {
+
+    drawScope.apply {
+
+        val needleTopCoordinates = Offset(
+            x = circleCenter.x,
+            y = circleCenter.y - innerRadius - scaleStyle.scaleINeedleLength.toPx()
+        )
+
+        // "-4f" means a little to the left (cartesian coordinate system)
+        val needleBottomLeftCoordinates = Offset(
+            x = circleCenter.x - 4f,
+            y = circleCenter.y - innerRadius
+        )
+
+        // " + 4f" means a little to the right (cartesian coordinate system)
+        val needleBottomRightCoordinates = Offset(
+            x = circleCenter.x + 4f,
+            y = circleCenter.y - innerRadius
+        )
+
+        val needle = Path().apply {
+            moveTo(x = needleTopCoordinates.x , y = needleTopCoordinates.y)
+            lineTo(x = needleBottomLeftCoordinates.x, y = needleBottomLeftCoordinates.y)
+            lineTo(x = needleBottomRightCoordinates.x, y = needleBottomRightCoordinates.y)
+            lineTo(x = needleTopCoordinates.x , y = needleTopCoordinates.y)
+        }
+
+        drawPath(
+            path = needle,
+            color = scaleStyle.scaleNeedleColor
+        )
+
+    }
 
 }
 
@@ -304,8 +369,8 @@ data class ScaleStyle(
     val oneStepLineLength: Dp = 15.dp,
     val fiveStepLineLength: Dp = 30.dp,
     val tenStepLineLength: Dp = 45.dp,
-    val scaleIndicatorColor: Color = Color.Green,
-    val scaleIndicatorLength : Dp = 60.dp,
+    val scaleNeedleColor: Color = Color.Green,
+    val scaleINeedleLength : Dp = 60.dp,
     val textSize: TextUnit = 18.sp
 )
 
