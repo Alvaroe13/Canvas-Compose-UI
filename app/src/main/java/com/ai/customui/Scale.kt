@@ -50,6 +50,7 @@ fun Scale(
 
     Canvas(
         modifier = modifier
+            // dragging logic
             .pointerInput(true) {
                 // "pointerInput" gives access to functions that let us retrieves taps/touch/drag event and fetch the coordinates
 
@@ -88,50 +89,50 @@ fun Scale(
                     onWeightChange(angle.toInt())
                 }
 
-            }
-    ) {
+            },
+        onDraw = {
 
-        center = this.center
+            center = this.center
 
-        circleCenter = Offset(x = center.x, y = scaleWidth.toPx() / 2 + radius.toPx())
+            circleCenter = Offset(x = center.x, y = scaleWidth.toPx() / 2 + radius.toPx())
 
-        //radius from circle center to outer and inner edge of the scale
-        val outerRadius = radius.toPx() + scaleWidth.toPx() / 2f
-        val innerRadius = radius.toPx() - scaleWidth.toPx() / 2f
+            //radius from circle center to outer and inner edge of the scale
+            val outerRadius = radius.toPx() + scaleWidth.toPx() / 2f
+            val innerRadius = radius.toPx() - scaleWidth.toPx() / 2f
 
-        val nativeCanvas = drawContext.canvas.nativeCanvas
+            val nativeCanvas = drawContext.canvas.nativeCanvas
 
-        // Scale and shadow around it
-        drawScale(
-            nativeCanvas = nativeCanvas,
-            circleCenter = circleCenter,
-            radiusInPx = radius.toPx(),
-            scaleWidthInPx = scaleWidth.toPx()
-        )
+            // Scale and shadow around it
+            drawScale(
+                nativeCanvas = nativeCanvas,
+                circleCenter = circleCenter,
+                radiusInPx = radius.toPx(),
+                scaleWidthInPx = scaleWidth.toPx()
+            )
 
-        // lines for weight
-        drawScaleWeightLines(
-            minWeight = minWeight,
-            maxWeight = maxWeight,
-            initialWeight = initialWeight,
-            angle = angle,
-            scaleStyle = scaleStyle,
-            outerRadius = outerRadius,
-            circleCenter = circleCenter,
-            drawScope = this,
-            nativeCanvas = nativeCanvas
-        )
+            // lines for weight
+            drawScaleWeightLines(
+                minWeight = minWeight,
+                maxWeight = maxWeight,
+                initialWeight = initialWeight,
+                angle = angle,
+                scaleStyle = scaleStyle,
+                outerRadius = outerRadius,
+                circleCenter = circleCenter,
+                drawScope = this,
+                nativeCanvas = nativeCanvas
+            )
 
-        //needle
-        scaleNeedle(
-            circleCenter = circleCenter,
-            drawScope = this,
-            innerRadius = innerRadius,
-            scaleStyle = scaleStyle
-        )
+            //needle
+            scaleNeedle(
+                circleCenter = circleCenter,
+                drawScope = this,
+                innerRadius = innerRadius,
+                scaleStyle = scaleStyle
+            )
 
-    }
-
+        }
+    )
 }
 
 private fun drawScale(

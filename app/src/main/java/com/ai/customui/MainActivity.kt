@@ -24,7 +24,7 @@ class MainActivity : ComponentActivity() {
 
                     //MyCanvasSquare()
 
-                    Scale(
+                    /*Scale(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(500.dp)
@@ -32,6 +32,11 @@ class MainActivity : ComponentActivity() {
                         scaleStyle = ScaleStyle(
                             scaleWidth = 150.dp
                         )
+                    )*/
+
+                    Clock(
+                        modifier = Modifier
+                            .fillMaxSize()
                     )
 
 
