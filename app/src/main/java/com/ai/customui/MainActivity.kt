@@ -10,6 +10,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.Px
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -42,6 +43,7 @@ import androidx.core.graphics.withRotation
 import com.ai.customui.ui.theme.CustomUITheme
 import kotlin.math.PI
 import kotlin.math.abs
+import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.pow
 import kotlin.math.sin
@@ -143,9 +145,21 @@ fun Scale(
     // The center of the scale
     var circleCenter by remember { mutableStateOf(Offset.Zero) }
 
-    val angle by remember { mutableStateOf(0f) }
+    var angle by remember { mutableStateOf(0f) }
 
-    Canvas(modifier = modifier) {
+    Canvas(
+        modifier = modifier
+            .scaleDraggingLogic(
+                circleCenter = circleCenter,
+                angle = angle,
+                initialWeight =  initialWeight,
+                maxWeight = maxWeight,
+                minWeight = minWeight,
+                onWeightChange = { newAngle ->
+                    angle = newAngle
+                }
+            )
+    ) {
 
         center = this.center
 
@@ -188,6 +202,62 @@ fun Scale(
 
     }
 
+}
+
+@Composable
+private fun Modifier.scaleDraggingLogic(
+    circleCenter: Offset,
+    angle : Float,
+    initialWeight: Int,
+    maxWeight: Int,
+    minWeight: Int,
+    onWeightChange : (Float) -> Unit
+) : Modifier {
+
+    var dragStartAngle by remember { mutableStateOf(0f) }
+
+    var oldAngle by remember { mutableStateOf(0f) }
+
+    var newAngle by remember { mutableStateOf(angle) }
+
+    return this.apply {
+        pointerInput(true) {
+            // "pointerInput" gives access to functions that let us retrieves taps/touch/drag event and fetch the coordinates
+
+            detectDragGestures(
+                onDragStart = { offset ->
+                    // angle of the pointer in relation to the center of the circle at the beginning of the dragging
+                    dragStartAngle = -atan2(
+                        y = circleCenter.x - offset.x,
+                        x = circleCenter.y - offset.y
+                    ).radiandsToDegrees()
+                },
+
+                onDragEnd = {
+                    // angle of pointer in relation to the center of the circle at the end of the dragging
+                    oldAngle = angle
+                }
+            ) { pointerChange, _ ->
+
+                // angle of the pointer in relation to the center of the circle
+                val touchAngle = -atan2(
+                    y = circleCenter.x - pointerChange.position.x,
+                    x = circleCenter.y - pointerChange.position.y
+                ).radiandsToDegrees()
+
+                newAngle = oldAngle + (touchAngle - dragStartAngle)
+
+                // avoid setting a value less/greater than max/min weight to avoid the scale rotating further these limits
+                newAngle = newAngle.coerceIn(
+                    minimumValue = initialWeight - maxWeight.toFloat(),
+                    maximumValue = initialWeight - minWeight.toFloat()
+                )
+
+                onWeightChange(newAngle)
+            }
+
+        }
+    }
 }
 
 private fun drawScale(
@@ -236,7 +306,7 @@ private fun drawScaleWeightLines(
 
             // angle needed in radians for "sin" & "cos" kotlin functions
             // this angle represents how inclined the line is to the center of the scale (lines representing the weight)
-            val angleInRadians = angleInDegrees * (PI / 180).toFloat() // angle multiplied by "(PI / 180)" converts the value from degrees to radians
+            val angleInRadians = angleInDegrees.degreesToRadians()
 
             val lineType = when {
                 i % 10 == 0 -> LineType.TenStepLine
@@ -318,6 +388,11 @@ private fun drawScaleWeightLines(
 
 }
 
+// angle multiplied by "(PI / 180)" converts the value from degrees to radians
+private fun Float.degreesToRadians () = this * (PI / 180).toFloat()
+
+private fun Float.radiandsToDegrees () = this * (PI / 180).toFloat()
+
 private fun scaleNeedle(
     circleCenter: Offset,
     drawScope: DrawScope,
@@ -348,7 +423,6 @@ private fun scaleNeedle(
             moveTo(x = needleTopCoordinates.x , y = needleTopCoordinates.y)
             lineTo(x = needleBottomLeftCoordinates.x, y = needleBottomLeftCoordinates.y)
             lineTo(x = needleBottomRightCoordinates.x, y = needleBottomRightCoordinates.y)
-            lineTo(x = needleTopCoordinates.x , y = needleTopCoordinates.y)
         }
 
         drawPath(
