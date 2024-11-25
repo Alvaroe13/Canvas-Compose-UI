@@ -31,7 +31,8 @@ class MainActivity : ComponentActivity() {
                             .align(Alignment.BottomCenter),
                         scaleStyle = ScaleStyle(
                             scaleWidth = 150.dp
-                        )
+                        ),
+                        initialWeight = 68
                     )*/
 
                     Clock(
