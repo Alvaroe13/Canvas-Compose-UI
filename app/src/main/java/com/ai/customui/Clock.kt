@@ -11,7 +11,9 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.withRotation
 import kotlin.math.PI
+import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -36,7 +38,8 @@ fun Clock(
             drawClockLines(
                 canvasCenter = canvasCenter,
                 clockRadiusInPx = clockStyle.radius.toPx(),
-                clockStyle = clockStyle
+                clockStyle = clockStyle,
+                nativeCanvas = nativeCanvas
             )
         }
     )
@@ -69,7 +72,8 @@ private fun Canvas.drawClock(
 private fun DrawScope.drawClockLines(
     clockStyle: ClockStyle,
     canvasCenter: Offset,
-    clockRadiusInPx: Float
+    clockRadiusInPx: Float,
+    nativeCanvas: Canvas
 ) {
 
     val minutesRange : IntRange = 1..60
@@ -91,7 +95,7 @@ private fun DrawScope.drawClockLines(
         }
 
         // we get the angle for each line by diving 360 degrees by number of lines to be shown in the clock (60)
-        val angleInDegrees = i * (FULL_CIRCLE_ANGLE_DEGREES/ minutesRange.last)
+        val angleInDegrees = i * (FULL_CIRCLE_ANGLE_DEGREES/ minutesRange.last) - 90
         val angleInRads = angleInDegrees.degreesToRadians()
 
         val lineStartOffset = Offset(
@@ -110,6 +114,30 @@ private fun DrawScope.drawClockLines(
             end = lineEndOffset,
             strokeWidth = 1.dp.toPx()
         )
+
+        // ----------- numbers -----------//
+        if(lineType is ClockLineType.FiveStepLine) {
+            val text = if (i == minutesRange.last) 0 else i
+            val marginIndicatorToNumber = 5.dp.toPx()
+            val textRadius = clockRadiusInPx - lineLength - marginIndicatorToNumber - clockStyle.numberSize.toPx()
+            val numberCoordinates = Offset(
+                x = textRadius * cos(angleInRads) + canvasCenter.x,
+                y = textRadius * sin(angleInRads) + canvasCenter.y
+            )
+
+            nativeCanvas.apply {
+                drawText(
+                    text.toString(),
+                    numberCoordinates.x,
+                    numberCoordinates.y,
+                    Paint().apply {
+                        textSize = clockStyle.numberSize.toPx()
+                        textAlign = Paint.Align.CENTER
+                    }
+                )
+            }
+
+        }
     }
 }
 
@@ -125,7 +153,8 @@ data class ClockStyle(
     val oneStepLineColor: Color = Color.Gray,
     val fiveStepLineColor : Color = Color.Black,
     val oneStepLineLength : Dp = 15.dp,
-    val fiveStepLineLength : Dp = 35.dp
+    val fiveStepLineLength : Dp = 35.dp,
+    val numberSize: Dp = 15.dp
 )
 
 sealed class ClockLineType {
