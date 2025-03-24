@@ -24,7 +24,7 @@ class MainActivity : ComponentActivity() {
 
                     //MyCanvasSquare()
 
-                    Scale(
+                    /*Scale(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(500.dp)
@@ -33,12 +33,11 @@ class MainActivity : ComponentActivity() {
                             scaleWidth = 150.dp
                         ),
                         initialWeight = 68
-                    )
+                    )*/
 
-//                    Clock(
-//                        modifier = Modifier
-//                            .fillMaxSize()
-//                    )
+                    //Clock(modifier = Modifier.fillMaxSize())
+
+                    AnimationsBasics()
 
 
                 }
