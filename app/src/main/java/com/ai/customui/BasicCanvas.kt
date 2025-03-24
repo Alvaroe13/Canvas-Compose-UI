@@ -2,6 +2,8 @@ package com.ai.customui
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
@@ -12,7 +14,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.ai.customui.ui.theme.CustomUITheme
 import kotlin.math.pow
 import kotlin.math.sqrt
 
@@ -47,9 +51,7 @@ fun MyCanvasSquare() {
                 color = Color.Red,
                 topLeft = Offset(portionWidth , portionHeight),
                 size = Size(size.width / 2 , size.height / 2),
-                style = Stroke(
-                    width = 5.dp.toPx()
-                )
+                style = Stroke(width = 5.dp.toPx())
             )
 
             // inner gradient circle
@@ -59,13 +61,21 @@ fun MyCanvasSquare() {
                 center = Offset(circleOffsetWidth, circleOffsetHeight),
                 radius = 100f,
                 brush = Brush.radialGradient(
-                    colors = listOf(
-                        Color.Red , Color.Blue
-                    ),
+                    colors = listOf(Color.Red, Color.Yellow),
                     center = center,
-                    radius = 100f
+                    radius = 500f
                 )
             )
         }
     )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun MyCanvasSquadPreview() {
+    CustomUITheme {
+        Box(modifier = Modifier.fillMaxSize()) {
+            MyCanvasSquare()
+        }
+    }
 }

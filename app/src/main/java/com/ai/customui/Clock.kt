@@ -3,15 +3,19 @@ package com.ai.customui
 import android.graphics.Canvas
 import android.graphics.Paint
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.withRotation
+import com.ai.customui.ui.theme.CustomUITheme
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.cos
@@ -160,4 +164,15 @@ data class ClockStyle(
 sealed class ClockLineType {
     object SingleStepLine : ClockLineType()
     object FiveStepLine : ClockLineType()
+}
+
+
+@Preview(showBackground = true)
+@Composable
+private fun ClockPreview() {
+    CustomUITheme {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Clock(modifier = Modifier.fillMaxSize())
+        }
+    }
 }

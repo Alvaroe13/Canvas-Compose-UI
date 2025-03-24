@@ -4,11 +4,16 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -16,11 +21,13 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.withRotation
+import com.ai.customui.ui.theme.CustomUITheme
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.cos
@@ -58,7 +65,7 @@ fun Scale(
                     onDragStart = { offset ->
                         println("TAG CustomUI onDragStart offset = ${offset}")
 
-                        // angle of the pointer in relation to the center of the circle at the beginning of the dragging
+                        // angle of the needle in relation to the center of the circle at the beginning of the dragging
                         dragStartAngle = -kotlin.math.atan2(
                             y = circleCenter.x - offset.x,
                             x = circleCenter.y - offset.y
@@ -66,16 +73,18 @@ fun Scale(
                     },
 
                     onDragEnd = {
-                        // angle of pointer in relation to the center of the circle at the end of the dragging
+                        println("TAG CustomUI onDragEnd")
+
+                        // angle of needle in relation to the center of the circle at the end of the dragging
                         oldAngle = angle
                     }
-                ) { pointerChange, _ ->
-                    println("TAG CustomUI pointerChange")
+                ) { needleChange, _ ->
+                    println("TAG CustomUI needleChange")
 
-                    // angle of the pointer in relation to the center of the circle
+                    // angle of the needle in relation to the center of the circle
                     val touchAngle = -kotlin.math.atan2(
-                        y = circleCenter.x - pointerChange.position.x,
-                        x = circleCenter.y - pointerChange.position.y
+                        y = circleCenter.x - needleChange.position.x,
+                        x = circleCenter.y - needleChange.position.y
                     ).radiandsToDegrees()
 
                     val newAngle = oldAngle + (touchAngle - dragStartAngle)
@@ -184,21 +193,21 @@ private fun drawScaleWeightLines(
             val angleInRadians = angleInDegrees.degreesToRadians()
 
             val lineType = when {
-                i % 10 == 0 -> LineType.TenStepLine
-                i % 5 == 0 -> LineType.FiveStepLine
-                else -> LineType.SingleStepLine
+                i % 10 == 0 -> LineType.TEN_STEP_LINE
+                i % 5 == 0 -> LineType.FIVE_STEP_LINE
+                else -> LineType.SINGLE_STEP_LINE
             }
 
             val lineLength = when(lineType) {
-                is LineType.TenStepLine -> scaleStyle.tenStepLineLength.toPx()
-                is LineType.FiveStepLine -> scaleStyle.fiveStepLineLength.toPx()
-                is LineType.SingleStepLine -> scaleStyle.oneStepLineLength.toPx()
+                 LineType.TEN_STEP_LINE -> scaleStyle.tenStepLineLength.toPx()
+                 LineType.FIVE_STEP_LINE -> scaleStyle.fiveStepLineLength.toPx()
+                 LineType.SINGLE_STEP_LINE -> scaleStyle.oneStepLineLength.toPx()
             }
 
             val lineColor = when(lineType) {
-                is LineType.TenStepLine -> scaleStyle.tenStepLineColor
-                is LineType.FiveStepLine -> scaleStyle.fiveStepLineColor
-                is LineType.SingleStepLine -> scaleStyle.oneStepLineColor
+                 LineType.TEN_STEP_LINE -> scaleStyle.tenStepLineColor
+                 LineType.FIVE_STEP_LINE -> scaleStyle.fiveStepLineColor
+                 LineType.SINGLE_STEP_LINE -> scaleStyle.oneStepLineColor
             }
 
             //(x,y) coordinates for the start of the lines
@@ -223,7 +232,7 @@ private fun drawScaleWeightLines(
 
             //-------------------------------- weight line numbers -------------------------------//
 
-            if(lineType is LineType.TenStepLine) {
+            if(lineType == LineType.TEN_STEP_LINE) {
                 val marginIndicatorToNumber = 5.dp.toPx()
                 val textRadius = outerRadius - lineLength - marginIndicatorToNumber - scaleStyle.textSize.toPx()
                 val numberCoordinates = Offset(
@@ -295,7 +304,7 @@ private fun scaleNeedle(
         )
 
         val needle = Path().apply {
-            moveTo(x = needleTopCoordinates.x , y = needleTopCoordinates.y)
+            moveTo(x = needleTopCoordinates.x , y = needleTopCoordinates.y) // this way we indicate to compose where in the screen we want to choose a location
             lineTo(x = needleBottomLeftCoordinates.x, y = needleBottomLeftCoordinates.y)
             lineTo(x = needleBottomRightCoordinates.x, y = needleBottomRightCoordinates.y)
         }
@@ -323,8 +332,41 @@ data class ScaleStyle(
     val textSize: TextUnit = 18.sp
 )
 
-sealed class LineType {
-    object SingleStepLine : LineType()
-    object FiveStepLine : LineType()
-    object TenStepLine : LineType()
+enum class LineType {
+     SINGLE_STEP_LINE,
+     FIVE_STEP_LINE,
+     TEN_STEP_LINE
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ScaleDefaultParamsPreview() {
+    CustomUITheme {
+
+        Box(modifier = Modifier.fillMaxSize()) {
+            Scale()
+        }
+
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ScaleCustomParamsPreview() {
+    CustomUITheme {
+
+        Box(modifier = Modifier.fillMaxSize()) {
+            Scale(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(500.dp)
+                    .align(Alignment.BottomCenter),
+                scaleStyle = ScaleStyle(
+                    scaleWidth = 150.dp
+                ),
+                initialWeight = 68
+            )
+        }
+
+    }
 }
