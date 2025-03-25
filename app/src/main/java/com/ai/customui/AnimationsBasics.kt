@@ -81,11 +81,12 @@ fun AnimationWithArrow() {
     }
 
     val outputPath = AndroidPath() //'AndroidPath' due to rename on import above (not real name)
-    val position = FloatArray(2)
-    val tangent = FloatArray(2)
+    val position = FloatArray(2) // 'x' & 'y' coordinates
+    val tangent = FloatArray(2) // 'x' & 'y' coordinates
 
     //'AndroidPathMeasure' due to rename on import above (not real name)
     AndroidPathMeasure().apply {
+        println("AnimationsBasics AndroidPathMeasure()")
         setPath(path.asAndroidPath(), false)
         getSegment(0f, pathAnimatable.value * length, outputPath, true)
         getPosTan(pathAnimatable.value * length, position, tangent)
@@ -104,12 +105,14 @@ fun AnimationWithArrow() {
         )
 
         //coordinates
-        val x  = position[0]
-        val y  = position[1]
-
+        val x = position[0]
+        val y = position[1]
         val degrees = -atan2(tangent[0] , tangent[1]) * (180f / PI.toFloat()) - 180f
 
-        rotate( degrees = degrees , pivot = Offset(x, y)) {
+        // rotates arrow following the position of the line it sits on top of
+        rotate(degrees = degrees , pivot = Offset(x, y)) {
+
+            // draw arrow point up
             drawPath(
                 path = Path().apply{
                     moveTo(x, y -30f)
