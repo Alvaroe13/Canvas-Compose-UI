@@ -37,7 +37,8 @@ class MainActivity : ComponentActivity() {
 
                     //Clock(modifier = Modifier.fillMaxSize())
 
-                    AnimationsBasics()
+                    //AnimationsBasics()
+                    AnimationWithArrow()
 
 
                 }
